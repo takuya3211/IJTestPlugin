@@ -8,17 +8,21 @@ public class TextReader {
 	//å„Ç≈ÇøÇ·ÇÒÇ∆ì«Ç›çûÇ›ïîï™ÇçÏÇÈ
 	public static final String ENDOFROI = "EndofROI";
 	public static final String ROINAME ="ROIName";
-	static List<Integer> roiListGyou = new ArrayList<Integer>();
-	static List<String> roiNameList = new ArrayList<String>();
-	static String targetDir = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
-	static String targetReadFileName = "Contour.txt";
-	static String[] textLines = new String[1];
+	public static List<Integer> roiListGyou = new ArrayList<Integer>();
+	public static List<String> roiNameList = new ArrayList<String>();
+	public static String targetDir = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+	public static String targetReadFileName = "Contour.txt";
+	public static String[] textLines = new String[1];
 	
-	public static void main(String args[]){
+	public static void main (String args[]){
+		TextReader tr = new TextReader();
+		tr.TextReader();
+	}
+	public static void TextReader(){
 		List<String> roiListTemp = new ArrayList<String>();
 		List<String> roiNameListTemp = new ArrayList<String>();
 		List<String> roiList = new ArrayList<String>();
-		
+		//System.out.println("hello world");
 		
 		List<String> textList = new ArrayList<String>();
 		
@@ -65,8 +69,8 @@ public class TextReader {
 		}catch(IOException e) {
 			System.out.println(e);
 		}
-		
-		makeAllROIFile();
+		makeRectumROIFile();
+		//makeAllROIFile();
 		
 		//printList(roiNameList);
 		//printList(roiListGyou);
@@ -89,7 +93,24 @@ public class TextReader {
 		}
 		return exportString;
 	}
+	
+	public static void makeRectumROIFile(){
+		int i = 0;
+		int rectumROINumber = 0;
+		for(i = 0; i < roiNameList.size(); i ++) {
+			if ((roiNameList.get(i).indexOf("Protect") != -1) ||  (roiNameList.get(i).indexOf("protect") != -1) || (roiNameList.get(i).indexOf("PROTECT") != -1)) {
+			}//protectÇä‹ÇﬁÇÃelseÇ≈ä‹Ç‹Ç∏Å@Ç‡Ç¡Ç∆ó«Ç¢ï˚ñ@Ç™Ç†ÇÈÇÕÇ∏
+			else{
+				if ((roiNameList.get(i).indexOf("Rectum") != -1) ||  (roiNameList.get(i).indexOf("rectum") != -1) || (roiNameList.get(i).indexOf("RECTUM") != -1)) {
+					//System.out.println("rectumÇ†Ç¡ÇΩ "+ roiNameList.get(i));
+					rectumROINumber = i;
+				}
 
+			}
+		}
+		makeROIFile(rectumROINumber);
+		System.out.println("RectumFile finished");
+	}
 	public static void makeAllROIFile(){
 		int i = 0;
 		for(i = 0; i < roiNameList.size(); i ++) {

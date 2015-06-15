@@ -16,12 +16,15 @@ public class IJTestPlugin_ implements PlugIn {
 	ImagePlus imp;
 	float refDose = 200;
 	public void run(String arg) {
-        String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan/";
-        String fileName = "Cork6cmPhlps_test-QA1+6MV_Dose.DCM";
+        String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+        String fileName = "19831222_test1_Dose.DCM";
         //String fileName = "test.png";
     	ImagePlus Dose = new ImagePlus(fileDirectory + fileName);
     	System.out.println("Calbration: " + Dose.getCalibration());
-    	
+    	DicomDecomposer dd = new DicomDecomposer();
+    	dd.DicomDecomposer(null);
+    	TextReader tr = new TextReader();
+    	tr.TextReader();
     	new StackConverter(Dose).convertToGray32();
     	ImageProcessor DoseIP = Dose.getProcessor();
     	float data = 0, doseFactor = 2.49912e-4F * 100F;
