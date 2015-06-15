@@ -2,7 +2,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
+//Contourのタグの中身をバックスラッシュをスペースに置き換えたりする
+//DicomDecomposerから呼び出してる
 class ContourAnalyze {
 	static int i = 0, count = 0;
 	static double points[] = new double[10000];	
@@ -53,7 +54,7 @@ class ContourAnalyze {
 	}
 	
 
-	static double[][] analyzeIt () {
+	/*static double[][] analyzeIt () {
 		File contourTarget = new File("/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan/Contour2.txt");
 		File contourTargetTemp = new File("/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan/ContourTemp.txt");
 		
@@ -61,7 +62,7 @@ class ContourAnalyze {
 		double [] stringValue = valueDecompose(contourTargetTemp);
 		double [][] stringValue2D = convert2D(stringValue);
 		return stringValue2D;
-	}
+	}*/
 	
 	static double[][] analyzeIt (String inputString) {
 		String tempString = "";

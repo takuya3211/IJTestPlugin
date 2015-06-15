@@ -17,12 +17,15 @@ public class IJTestPlugin_ implements PlugIn {
 	float refDose = 200;
 	public void run(String arg) {
         String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
-        String fileName = "19831222_test1_Dose.DCM";
-        //String fileName = "test.png";
-    	ImagePlus Dose = new ImagePlus(fileDirectory + fileName);
+        String fileNameDoseDCM = "19831222_test1_Dose.DCM";
+        String fileNameContourDCM = "19831222_test1_Dose.dcm";
+        String fileNameContour = "Contour.txt";
+        String fileNameDose = "Dose.txt";
+        //String fileNameDose = "test.png";
+    	ImagePlus Dose = new ImagePlus(fileDirectory + fileNameDoseDCM);
     	System.out.println("Calbration: " + Dose.getCalibration());
     	DicomDecomposer dd = new DicomDecomposer();
-    	dd.DicomDecomposer(null);
+
     	TextReader tr = new TextReader();
     	tr.TextReader();
     	new StackConverter(Dose).convertToGray32();
@@ -45,7 +48,7 @@ public class IJTestPlugin_ implements PlugIn {
     			 }
     		 }
     	}
-    	System.out.println("hello");
+    	//System.out.println("hello");
 		Dose.updateAndDraw();
 		Dose.updateAndRepaintWindow();
     	return Dose;

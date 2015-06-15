@@ -6,7 +6,13 @@ import java.util.Properties;
 
 class DicomDecomposer{
 	//static File targetDir = new File("c:/pic/");
+    static String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+    static String fileNameDoseDCM = "19831222_test1_Dose.DCM";
+    static String fileNameContourDCM = "19831222_StrctrSets.dcm";
+    static String fileNameDose = "Dose.txt";
+    static String fileNameContour = "Contour.txt";
 	static File targetFile = new File("/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/19831222_StrctrSets.dcm");
+	static File targetDoseFile = new File("/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/19831222_test1_Dose.dcm");
 	static String targetPath = targetFile.getParent() + "/";
 	//static File targetFile = new File("/Users/takuya/Documents/workspace/DicomDecomposer/src/PinnalcePlan/testfile3.dcm");
 	//static File targetFile = new File("c:/pic/RTPLAN16212.2.dcm");
@@ -34,15 +40,47 @@ class DicomDecomposer{
 	static ArrayList<String> roiNameList = new ArrayList<String>();
 	static ArrayList<String> roiNumberList = new ArrayList<String>();
 	
+	public static void refreshAll(){
+		flag = 0;
+		location = 0;
+		SQlocation = 0;
+		count = 0;
+		tempBuffer = new byte[4];
+		groupTag = new byte[2];
+		elementTag = new byte[2];
+		VR = new byte[2];
+		segmentSize = 0;
+		VRString ="";
+		preamble = new byte[128];//プリアンブルの128byte
+		groupArray = new ArrayList<byte[]>();
+		elementArray = new ArrayList<byte[]>();
+		VRArray = new ArrayList<String>();
+		lengthArray = new ArrayList<byte[]>();
+		dataArray = new ArrayList<byte[]>();
+		MLCArray = new ArrayList<String>();
+		MLCMonacoArray = new ArrayList<String>();
+		//Properties dictionary;
+		
+		roiNameList = new ArrayList<String>();
+		roiNumberList = new ArrayList<String>();
+	}
+	
 	public static void main(String[] args) {
 		DicomDecomposer dd = new DicomDecomposer();
 	}
-    public static void DicomDecomposer(String[] args) {
+	
+	public DicomDecomposer(){
+		makeContourFile();
+		refreshAll();
+		makeDoseFile();
+	}
+	
+    public static void makeContourFile() {
     	try{
     		FileInputStream input = new FileInputStream(targetFile);
     		long filesize = input.available();
     		//System.out.println(input.available());
-    		System.out.println(targetFile.getParent());
+    		//System.out.println(targetFile.getParent());
     		//FileOutputStream output = new FileOutputStream(targetFile.getParent() + "/testfile.dat");
     		FileWriter output = new FileWriter(targetFile.getParent() + "/outputfile.txt"); //解析結果を出力
     		FileWriter selectedOutput = new FileWriter(targetFile.getParent() + "/Contour.txt"); //ROI結果を出力
@@ -69,6 +107,37 @@ class DicomDecomposer{
 	    		output.close();
 	    		selectedOutput.flush();
 	    		selectedOutput.close();
+	    		input.close();
+	    		
+
+    		//}
+    	}
+    	catch(IOException e) {
+            System.out.println(e);
+    		
+    	}
+	}
+    
+    public static void makeDoseFile() {
+    	try{
+    		FileInputStream input = new FileInputStream(targetDoseFile);
+    		long filesize = input.available();
+    		System.out.println(targetDoseFile.getParent());
+    		FileWriter doseOutput = new FileWriter(targetDoseFile.getParent() + "/outputDosefile.txt"); //解析結果を出力
+    		FileWriter selectedDoseOutput = new FileWriter(targetDoseFile.getParent() + "/Dose.txt"); //ROI結果を出力
+    		int i = 0;
+    		DicomDictionary d = new  DicomDictionary();
+    		dictionary = d.getDictionary();
+    			while (location < filesize){
+					getAll(input);
+					count ++;
+    			}
+    			printDoseResults(doseOutput, selectedDoseOutput);
+    			System.out.println("Dose Finished!!");
+    			doseOutput.flush();
+    			doseOutput.close();
+	    		selectedDoseOutput.flush();
+	    		selectedDoseOutput.close();
 	    		input.close();
 	    		
 
@@ -201,12 +270,12 @@ class DicomDecomposer{
     					;
     		}
     		//System.out.println(tempString);
-    		try {
+    		try {//ここはselectedOutputに特定のタグの情報を書く部分
     			if (bytetoHexString(groupArray.get(i)).equals("3006") && bytetoHexString(elementArray.get(i)).equals("0050") ){
     				//Contour Data
     				//selectedOutput.write(tempString2 + "\n");
     				ContourAnalyze ca = new ContourAnalyze();
-    				String [] tempStringArray = ca.getString(ca.analyzeIt(tempString2));
+    				String [] tempStringArray = ca.getString(ca.analyzeIt(tempString2));//バックスラッシュ区切りをスペース区切りのStringに変換
     				int tempStringCount = 0;
     				for (tempStringCount = 0; tempStringCount < tempStringArray.length; tempStringCount++){
     					selectedOutput.write(tempStringArray[tempStringCount] + "\n");
@@ -228,6 +297,85 @@ class DicomDecomposer{
     			else if (bytetoHexString(groupArray.get(i)).equals("3006") && bytetoHexString(elementArray.get(i)).equals("0084") ){
     				//Referenced ROI Number
     				selectedOutput.write(tempString2 + "EndofROI\n");
+    				//roiNumberList.add(tempString2);
+    			}
+    			output.write(tempString + "\n");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	}
+    	for (i = 0; i < roiNumberList.size(); i ++){
+    		System.out.println(roiNumberList.get(i) + " " + roiNameList.get(i));
+    	}
+    }
+    public static void printDoseResults(FileWriter output, FileWriter selectedOutput){
+    	int i = 0;
+    	int roiCount = 0;
+    	String tempString = "";
+    	String tempString2 = "";
+    	String avtiveROIName = "", activeROINumber = "";
+    	for(i = 0; i < count ; i ++) {
+    		if (!VRArray.get(i).equals("SQ")) {//VRがSQ以外の時の処理
+    			tempString = 
+    					"(" + 
+    					bytetoHexString(groupArray.get(i)) + "," + 
+    					bytetoHexString(elementArray.get(i)) + ")" +
+    					" " + VRArray.get(i) + " " +
+    					" [" + dictionary.get(bytetoHexString(groupArray.get(i)) + bytetoHexString(elementArray.get(i))).toString().substring(2) +  "] " +
+    					  
+    					new String(dataArray.get(i));
+    			tempString2 = new String(dataArray.get(i));
+    			
+    		} else {//SQだった場合
+    			tempString = 
+    					"(" + 
+    					bytetoHexString(groupArray.get(i)) + "," + 
+    					bytetoHexString(elementArray.get(i)) + ")" +
+    					" " + VRArray.get(i) + " " +
+    					" [" + dictionary.get(bytetoHexString(groupArray.get(i)) + bytetoHexString(elementArray.get(i))).toString().substring(2) +  "] " +
+    					"Here is SQ segment!!!!!" //+ 
+    					//bytetoHexString(dataArray.get(i)
+    					;
+    		}
+    		//System.out.println(tempString);
+    		try {//ここはselectedOutputに特定のタグの情報を書く部分
+    			if (bytetoHexString(groupArray.get(i)).equals("3004") && bytetoHexString(elementArray.get(i)).equals("000E") ){
+    				//DoseScalingのタグ情報
+    				selectedOutput.write("DoseScaling" + tempString2 + "\n");
+    				
+    			}
+    			else if (bytetoHexString(groupArray.get(i)).equals("0020") && bytetoHexString(elementArray.get(i)).equals("0032") ){
+    				//ImagePositionのタグ情報
+    				selectedOutput.write("ImagePosition");
+    				ContourAnalyze ca = new ContourAnalyze();
+    				String [] tempStringArray = ca.getString(ca.analyzeIt(tempString2));//バックスラッシュ区切りをスペース区切りのStringに変換
+    				int tempStringCount = 0;
+    				for (tempStringCount = 0; tempStringCount < tempStringArray.length; tempStringCount++){
+    					selectedOutput.write(tempStringArray[tempStringCount] + "\n");
+    				}
+    				//selectedOutput.write("ImagePosition" + tempString2 + "\n");
+    			}
+    			else if (bytetoHexString(groupArray.get(i)).equals("0028") && bytetoHexString(elementArray.get(i)).equals("0030") ){
+    				//ImagePositionのタグ情報
+    				selectedOutput.write("PixelSpacing");
+    				//バックスラッシュの置き換えだけど他の場所でも頻繁に使ってるからメソッドにした方がいいか
+    				ContourAnalyze ca = new ContourAnalyze();
+    				//x,y,zの座標のように３個で１対のデータ構造を想定してたから上手くいかない、tempString2の最初の文字でとりあえず誤魔化す
+    				String [] tempStringArray = ca.getString(ca.analyzeIt(tempString2 + tempString2.substring(0, 1)));//バックスラッシュ区切りをスペース区切りのStringに変換
+    				int tempStringCount = 0;
+    				for (tempStringCount = 0; tempStringCount < tempStringArray.length; tempStringCount++){
+    					selectedOutput.write(tempStringArray[tempStringCount] + "\n");
+    				}
+    			}
+    			//ちょっと特殊で7FE0,0010のタグは画像データなのでテキスト出力から弾く出力先はoutput
+    			else if (bytetoHexString(groupArray.get(i)).equals("7FE0") && bytetoHexString(elementArray.get(i)).equals("0010") ){
+    				//Referenced ROI Number
+    				tempString ="(" + 
+					bytetoHexString(groupArray.get(i)) + "," + 
+					bytetoHexString(elementArray.get(i)) + ")" +
+					" " + VRArray.get(i) + " " +
+					" [" + dictionary.get(bytetoHexString(groupArray.get(i)) + bytetoHexString(elementArray.get(i))).toString().substring(2) +  "] " +
+    				 "ここは画像データです";
     				//roiNumberList.add(tempString2);
     			}
     			output.write(tempString + "\n");

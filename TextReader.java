@@ -1,7 +1,4 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import java.util.*;
 
 public class TextReader {
@@ -10,27 +7,44 @@ public class TextReader {
 	public static final String ROINAME ="ROIName";
 	public static List<Integer> roiListGyou = new ArrayList<Integer>();
 	public static List<String> roiNameList = new ArrayList<String>();
-	public static String targetDir = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
-	public static String targetReadFileName = "Contour.txt";
+    static String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+    //static String fileNameDoseDCM = "19831222_test1_Dose.DCM";
+    //static String fileNameContourDCM = "19831222_StrctrSets.dcm";
+    static String fileNameDose = "Dose.txt";
+    static String fileNameContour = "Contour.txt";
+	//public static String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+	//public static String fileNameContour = "Contour.txt";
 	public static String[] textLines = new String[1];
+	public static List<String> roiListTemp = new ArrayList<String>();
+	public static List<String> roiNameListTemp = new ArrayList<String>();
+	public static List<String> roiList = new ArrayList<String>();
+	public static List<String> textList = new ArrayList<String>();
+	
+	public static void refreshAll() {//ListÇ∆Ç©Çèâä˙âª
+		roiListGyou = new ArrayList<Integer>();
+		roiNameList = new ArrayList<String>();
+		//fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+		//fileNameContour = "Contour.txt";
+		textLines = new String[1];
+		List<String> roiListTemp = new ArrayList<String>();
+		List<String> roiNameListTemp = new ArrayList<String>();
+		List<String> roiList = new ArrayList<String>();
+		List<String> textList = new ArrayList<String>();
+	}
+	
 	
 	public static void main (String args[]){
 		TextReader tr = new TextReader();
 		tr.TextReader();
 	}
 	public static void TextReader(){
-		List<String> roiListTemp = new ArrayList<String>();
-		List<String> roiNameListTemp = new ArrayList<String>();
-		List<String> roiList = new ArrayList<String>();
-		//System.out.println("hello world");
-		
-		List<String> textList = new ArrayList<String>();
+
 		
 
-		//File writeFile = new File(targetDir + roiNameListTemp.get(0) +  ".txt");
+		//File writeFile = new File(fileDirectory + roiNameListTemp.get(0) +  ".txt");
 		//FileWriter fw = new FileWriter(writeFile);
 		try {
-			File readFile = new File(targetDir + targetReadFileName);
+			File readFile = new File(fileDirectory + fileNameContour);
 			//File writeFile;
 			FileReader fr = new FileReader(readFile);
 			BufferedReader br = new BufferedReader(fr);
@@ -120,9 +134,9 @@ public class TextReader {
 	
 	public static void makeROIFile (int roiNumber){
 		if (roiNumber == 0) {
-			makeFile(targetDir + roiNameList.get(roiNumber) + ".txt", getROIText(textLines,roiListGyou.get(roiNumber),roiListGyou.get(roiNumber+1)) );
+			makeFile(fileDirectory + roiNameList.get(roiNumber) + ".txt", getROIText(textLines,roiListGyou.get(roiNumber),roiListGyou.get(roiNumber+1)) );
 		} else {
-			makeFile(targetDir + roiNameList.get(roiNumber) + ".txt", getROIText(textLines,roiListGyou.get(roiNumber) + 1,roiListGyou.get(roiNumber+1)) );
+			makeFile(fileDirectory + roiNameList.get(roiNumber) + ".txt", getROIText(textLines,roiListGyou.get(roiNumber) + 1,roiListGyou.get(roiNumber+1)) );
 		}
 	}
 	
