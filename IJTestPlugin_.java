@@ -24,26 +24,34 @@ public class IJTestPlugin_ implements PlugIn {
         //String fileNameDose = "test.png";
     	ImagePlus Dose = new ImagePlus(fileDirectory + fileNameDoseDCM);
     	System.out.println("Calbration: " + Dose.getCalibration());
+    	
+    	//DicomDecomposerを動作させてContour.txtとDose.txtを作る
     	DicomDecomposer dd = new DicomDecomposer();
-
+    	
+    	//TextReaderを起動させて個別のROIファイルを作る
     	TextReader tr = new TextReader();
-    	tr.TextReader();
+    	System.out.println("dose scale is " + tr.doseScaling);
+    	
     	new StackConverter(Dose).convertToGray32();
     	ImageProcessor DoseIP = Dose.getProcessor();
-    	float data = 0, doseFactor = 2.49912e-4F * 100F;
+    	float data = 0;
+    	double [] imagePosition = tr.imagePosition;
+    	double [] pixelSpacing = tr.pixelSpacing;
+    	double doseScaling = tr.doseScaling * 100.0;//cGy単位にするために100かける
+    	
     	//setZDepth(Dose,3.0);
-    	Dose = replaceToDose(Dose, DoseIP, doseFactor);
+    	Dose = replaceToDose(Dose, DoseIP, (float)doseScaling);
     	Dose.show();
 	}
 	
-	public static ImagePlus replaceToDose(ImagePlus Dose, ImageProcessor DoseIP, float doseFactor) {
+	public static ImagePlus replaceToDose(ImagePlus Dose, ImageProcessor DoseIP, float doseScaling) {
     	int i = 0, j =0, k = 0;
     	float data = 0;
     	for(k = 1; k <= Dose.getNSlices(); k ++) {
     		Dose.setSlice(k);
     		 for(j =0; j < Dose.getHeight() ; j ++){
     			 for(i = 0; i < Dose.getWidth(); i ++) {
-    				 data =  DoseIP.getPixelValue(i, j) * doseFactor;//doseに変換
+    				 data =  DoseIP.getPixelValue(i, j) * doseScaling;//doseに変換
     				 DoseIP.setf(i, j, data);
     			 }
     		 }

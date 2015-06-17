@@ -5,6 +5,10 @@ public class TextReader {
 	//å„Ç≈ÇøÇ·ÇÒÇ∆ì«Ç›çûÇ›ïîï™ÇçÏÇÈ
 	public static final String ENDOFROI = "EndofROI";
 	public static final String ROINAME ="ROIName";
+	public static final String IMAGEPOSITION = "ImagePosition";
+	public static final String PIXELSPACING = "PixelSpacing";
+	public static final String DOSESCALING = "DoseScaling";
+	
 	public static List<Integer> roiListGyou = new ArrayList<Integer>();
 	public static List<String> roiNameList = new ArrayList<String>();
     static String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
@@ -15,10 +19,15 @@ public class TextReader {
 	//public static String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
 	//public static String fileNameContour = "Contour.txt";
 	public static String[] textLines = new String[1];
+	public static String[] textLinesDose = new String[1];
 	public static List<String> roiListTemp = new ArrayList<String>();
 	public static List<String> roiNameListTemp = new ArrayList<String>();
 	public static List<String> roiList = new ArrayList<String>();
 	public static List<String> textList = new ArrayList<String>();
+	public static double [] imagePosition = new double [3];
+	public static double [] pixelSpacing = new double [3];
+	public static double doseScaling;
+	double testdouble = 0.1;
 	
 	public static void refreshAll() {//ListÇ∆Ç©Çèâä˙âª
 		roiListGyou = new ArrayList<Integer>();
@@ -26,6 +35,7 @@ public class TextReader {
 		//fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
 		//fileNameContour = "Contour.txt";
 		textLines = new String[1];
+		textLinesDose = new String[1];
 		List<String> roiListTemp = new ArrayList<String>();
 		List<String> roiNameListTemp = new ArrayList<String>();
 		List<String> roiList = new ArrayList<String>();
@@ -35,12 +45,15 @@ public class TextReader {
 	
 	public static void main (String args[]){
 		TextReader tr = new TextReader();
-		tr.TextReader();
+		//tr.TextReader();
 	}
-	public static void TextReader(){
-
-		
-
+	public TextReader(){
+		doIt();
+		refreshAll();
+		doItDose();
+	}
+	
+	public void doIt(){
 		//File writeFile = new File(fileDirectory + roiNameListTemp.get(0) +  ".txt");
 		//FileWriter fw = new FileWriter(writeFile);
 		try {
@@ -74,6 +87,7 @@ public class TextReader {
 				//if (textLines[i].indexOf("EndofROI") != -1) roiListTemp.add(textLines[i]);
 				//System.out.println(textLines[i]);
 			}
+			fr.close();
 			br.close();
 			double [][] valueList = new double[count][3];
 			
@@ -88,16 +102,73 @@ public class TextReader {
 		
 		//printList(roiNameList);
 		//printList(roiListGyou);
-
 	}
-
+	
+	public void doItDose(){
+		try {
+			File readFile = new File(fileDirectory + fileNameDose);
+			FileReader fr = new FileReader(readFile);
+			BufferedReader br = new BufferedReader(fr);
+			
+			int i =0;
+			int count = countLines(readFile);
+			//roiListGyou.add(getFirstLine(readFile));
+			//System.out.println("get line is " + firstLine);
+			textLinesDose = new String[count];
+			for (i =0; i < count ; i ++) {
+				textLinesDose[i] = br.readLine();
+				if (textLinesDose[i] != null ){
+					if(textLinesDose[i].indexOf(IMAGEPOSITION) != -1){
+						String [] imagePositionString = new String[3];
+						//Ç¢Ç´Ç»ÇËparseDoubleÇ≈Ç´Ç»Ç¢Ç©ÇÁàÍìxStringÇ…Ç∑ÇÈ
+						imagePositionString = textLinesDose[i].substring(IMAGEPOSITION.length(), textLinesDose[i].length()).split(" ");
+						imagePosition = stringToDouble(imagePositionString);
+					}
+					if(textLinesDose[i].indexOf(PIXELSPACING) != -1){
+						String [] pixelSpacingString = new String[3];
+						//Ç¢Ç´Ç»ÇËparseDoubleÇ≈Ç´Ç»Ç¢Ç©ÇÁàÍìxStringÇ…Ç∑ÇÈ
+						pixelSpacingString = textLinesDose[i].substring(PIXELSPACING.length(), textLinesDose[i].length()).split(" ");
+						pixelSpacing = stringToDouble(pixelSpacingString);
+					}
+					if(textLinesDose[i].indexOf(DOSESCALING) != -1){
+						doseScaling = Double.parseDouble(textLinesDose[i].substring(DOSESCALING.length(),textLinesDose[i].length()) );
+					}
+					
+				}
+				//if (textLines[i].indexOf("EndofROI") != -1) roiListTemp.add(textLines[i]);
+				//System.out.println(textLines[i]);
+			}
+			fr.close();
+			br.close();
+			double [][] valueList = new double[count][3];
+			
+			
+		}catch(FileNotFoundException e) {
+			System.out.println(e);
+		}catch(IOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	public static double[] stringToDouble(String [] inputString) {
+		double [] value = new double[inputString.length];
+		int i = 0;
+		for (i = 0; i < inputString.length; i ++){
+			value[i] = Double.parseDouble(inputString[i]);
+		}
+		return value;
+	}
+	public static double getDoseScaling(String inputString){
+		double doseScaling = 0.0;
+		
+		return doseScaling;
+	}
 	public static void printList(List inputList){
 		int i = 0;
 		for(i = 0; i < inputList.size(); i ++) {
 			System.out.println(inputList.get(i));
 		}
 	}
-
 	
 	public static String[] getROIText(String [] inputText, int start, int end) {
 		String [] exportString = new String[end - start];
