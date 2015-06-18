@@ -102,7 +102,7 @@ class DicomDecomposer{
     			//putMLC(); //Pinnacle‚ÌMLCî•ñ‚ğMonaco‚É•ÏŠ·‚·‚é‚½‚ß
     			//MLCMonaco();//Pinnacle‚ÌMLCî•ñ‚ğMonaco‚É•ÏŠ·‚·‚é‚½‚ß
     			//System.out.println(location);
-    			System.out.println("Finished!!");
+    			System.out.println("Contour Finished!!");
 	    		output.flush();
 	    		output.close();
 	    		selectedOutput.flush();
@@ -122,7 +122,7 @@ class DicomDecomposer{
     	try{
     		FileInputStream input = new FileInputStream(targetDoseFile);
     		long filesize = input.available();
-    		System.out.println(targetDoseFile.getParent());
+    		//System.out.println(targetDoseFile.getParent());
     		FileWriter doseOutput = new FileWriter(targetDoseFile.getParent() + "/outputDosefile.txt"); //‰ğÍŒ‹‰Ê‚ğo—Í
     		FileWriter selectedDoseOutput = new FileWriter(targetDoseFile.getParent() + "/Dose.txt"); //ROIŒ‹‰Ê‚ğo—Í
     		int i = 0;
@@ -303,9 +303,6 @@ class DicomDecomposer{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-    	}
-    	for (i = 0; i < roiNumberList.size(); i ++){
-    		System.out.println(roiNumberList.get(i) + " " + roiNameList.get(i));
     	}
     }
     public static void printDoseResults(FileWriter output, FileWriter selectedOutput){

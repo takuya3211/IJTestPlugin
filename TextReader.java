@@ -28,6 +28,7 @@ public class TextReader {
 	public static double [] pixelSpacing = new double [3];
 	public static double doseScaling;
 	double testdouble = 0.1;
+	static String [] rectumString;
 	
 	public static void refreshAll() {//List‚Æ‚©‚ğ‰Šú‰»
 		roiListGyou = new ArrayList<Integer>();
@@ -194,8 +195,10 @@ public class TextReader {
 			}
 		}
 		makeROIFile(rectumROINumber);
+		rectumString = getROIText(textLines,roiListGyou.get(rectumROINumber) + 1,roiListGyou.get(rectumROINumber+1));
 		System.out.println("RectumFile finished");
 	}
+	
 	public static void makeAllROIFile(){
 		int i = 0;
 		for(i = 0; i < roiNameList.size(); i ++) {
