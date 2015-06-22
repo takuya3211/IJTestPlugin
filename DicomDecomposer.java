@@ -280,7 +280,7 @@ class DicomDecomposer{
     				for (tempStringCount = 0; tempStringCount < tempStringArray.length; tempStringCount++){
     					selectedOutput.write(tempStringArray[tempStringCount] + "\n");
     				}
-    				selectedOutput.write("\n");  				
+    				//selectedOutput.write("\n"); スライスの終わりに改行を入れたい時に使う		
     				//ca.printAll(ca.getString(ca.analyzeIt(tempString2)));
     				//System.out.println("-----------------------");
     			}

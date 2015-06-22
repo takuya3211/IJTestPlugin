@@ -29,6 +29,8 @@ public class TextReader {
 	public static double doseScaling;
 	double testdouble = 0.1;
 	static String [] rectumString;
+	static double [][] rectumDouble;
+	int sliceNumber=0;
 	
 	public static void refreshAll() {//Listとかを初期化
 		roiListGyou = new ArrayList<Integer>();
@@ -196,6 +198,21 @@ public class TextReader {
 		}
 		makeROIFile(rectumROINumber);
 		rectumString = getROIText(textLines,roiListGyou.get(rectumROINumber) + 1,roiListGyou.get(rectumROINumber+1));
+		
+		//直腸ROIの座標をいれるrectumDoubleを作る
+		rectumDouble = new double[rectumString.length][3];
+		for (i = 0; i < rectumString.length; i ++) {
+			int j = 0;
+			String [] rectumStringTemp = rectumString[i].split(" ");
+			for(j =0 ; j < 3; j++){
+				rectumDouble[i][j] = Double.parseDouble(rectumStringTemp[j]);
+				//System.out.print(rectumDouble[i][j] + " ");
+			}
+			//System.out.print("\n");
+		}
+		//countSlice(rectumDouble);
+		getSlices(rectumDouble);
+		printzSlices(getSlices(rectumDouble));
 		System.out.println("RectumFile finished");
 	}
 	
@@ -220,7 +237,11 @@ public class TextReader {
 			File writeFile = new File(filePathName);
 			FileWriter fw = new FileWriter(writeFile);
 			for (i = 0; i < textData.length; i ++) {
-				fw.write(textData[i] + "\n");
+				if(i != textData.length-1) {
+					fw.write(textData[i] + "\n");
+				}else{
+					fw.write(textData[i]);//最後の行は改行しないように
+				}
 			}
 			fw.close();
 		}catch(FileNotFoundException e) {
@@ -313,5 +334,58 @@ public class TextReader {
 			System.out.println(e);
 		}
 		return count + 1;//0行からカウントするから
+	}
+	
+	public static int countSlice(double [][] rectumDouble){
+		int sliceNumber = 1;
+		double zTemp = rectumDouble[0][2];
+		int i = 0;
+		for (i = 0; i < rectumDouble.length; i ++){
+			if(zTemp != rectumDouble[i][2]) {
+				//System.out.println(zTemp);
+				sliceNumber ++;
+				zTemp = rectumDouble[i][2];
+			}
+		}
+		//System.out.println(sliceNumber);
+		return sliceNumber;
+	}
+	
+	public static double[][] getSlices(double [][] rectumDouble){
+		double [][] zSlices = new double[countSlice(rectumDouble)][3];
+		zSlices[0][0] = rectumDouble[0][2];
+		zSlices[0][1] = 0;//同一スライスの始まり
+		zSlices[countSlice(rectumDouble)-1][2] = rectumDouble.length -1;
+		
+		double zTemp = zSlices[0][0];
+		int i = 0,zCount = 0;
+		for(i = 0; i < rectumDouble.length; i ++){
+			if(zTemp != rectumDouble[i][2]) {
+				//System.out.println(zTemp);
+				zSlices[zCount][2] = i-1;
+				zCount ++;
+				zSlices[zCount][0] = rectumDouble[i][2];
+				zSlices[zCount][1] = i; 
+				zTemp = rectumDouble[i][2];
+				//System.out.println(i + " " +rectumDouble[i][2] + ", " + rectumDouble[i-1][2]);
+			}
+		}
+		/*for(i = 0; i < zSlices.length ; i ++) {
+			System.out.println(zSlices[i][0] + " " + zSlices[i][1]+ " " + zSlices[i][2]);
+		}*/
+		//System.out.println();
+		return zSlices;
+	}
+	
+	static void printzSlices(double [][]zSlices) {
+		int zCount = zSlices.length;
+		int zDimension = zSlices[0].length;
+		int i = 0, j = 0;
+		for(i = 0; i < zCount; i ++) {
+			for(j = 0; j < zDimension; j ++){
+				System.out.print(zSlices[i][j] + " ");
+			}
+			System.out.print("\n");
+		}
 	}
 }
