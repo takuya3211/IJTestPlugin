@@ -3,6 +3,12 @@ import ij.process.*;
 import ij.gui.*;
 
 import java.awt.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.Math;
+import java.math.BigDecimal;
 
 import ij.plugin.*;
 //import ij.plugin.Thresholder.*;
@@ -21,6 +27,7 @@ public class IJTestPlugin_ implements PlugIn {
 	static double [] pixelSpacing;
 	static double doseScaling;
 	static double [] zSlices;
+	static double[][] rectumDose;
 	//-10.8 -183.7 -594.0
 	public void run(String arg) {
         String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
@@ -45,6 +52,9 @@ public class IJTestPlugin_ implements PlugIn {
     	imagePosition = tr.imagePosition;
     	pixelSpacing = tr.pixelSpacing;
     	doseScaling = tr.doseScaling * 100.0;//cGy単位にするために100かける
+    	double [][] zSlices = tr.getSlices(tr.rectumDouble);
+    	//System.out.println(zSlices[0][0]);
+    	System.out.println(tr.rectumDouble[0][0] + " " + tr.rectumDouble[0][1] + " " + tr.rectumDouble[0][2]);
     	
     	setZDepth(Dose,pixelSpacing[2]);
     	System.out.println("Calbration: " + Dose.getCalibration());
@@ -60,7 +70,6 @@ public class IJTestPlugin_ implements PlugIn {
     	ImageStack  resizedStack = sp.resize((int)(Dose.getWidth()*pixelSpacing[0]), (int)(Dose.getHeight()*pixelSpacing[1]) );
 		Dose.setStack(resizedStack);*/
 		
-    	
     	//Dose.show();
     	//1mmボクセルにリスケール
     	ScalerKai sk = new ScalerKai();
@@ -75,32 +84,107 @@ public class IJTestPlugin_ implements PlugIn {
     	ImageProcessor DoseIP2 = Dose2.getProcessor();
     	float [] putValue = {8000.0f, 0.0f};
     	int i = 0;
-    	//Dose.show();
-    	Roi test = new Roi(50, 50, 20, 20);
-    	float[] xpoints ={-10.8f, -9.5f, -8.3f, -7f, -5.7f, -4.4f, -3.2f, -1.9f, -0.6f, -0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, -0.6f, -0.6f, -1.9f, -3.2f, -4.4f, -5.7f, -7f, -8.3f, -9.5f, -10.8f, -12.1f, -13.3f, -14.6f, -14.6f, -14.6f, -14.6f, -14.6f, -14.6f, -14.6f, -14.6f, -14.6f, -14.6f, -13.3f, -12.1f};
-    	float[] ypoints = {-183.7f, -183.7f, -183.7f, -183.7f, -183.7f, -182.5f, -182.5f, -181.2f, -179.9f, -178.7f, -177.4f, -176.1f, -174.9f, -173.6f, -172.3f, -171.1f, -169.8f, -168.5f, -167.2f, -167.2f, -166f, -166f, -166f, -166f, -166f, -166f, -167.2f, -168.5f, -169.8f, -171.1f, -172.3f, -173.6f, -174.9f, -176.1f, -177.4f, -178.7f, -179.9f, -181.2f, -182.5f};
-    	int [] xpointsInt = new int[xpoints.length];
-    	int [] ypointsInt = new int[ypoints.length];
-    	for (i = 0; i < xpoints.length; i ++){
-    		xpointsInt[i] = (int)((xpoints[i] - (float)imagePosition[0]));
-    		ypointsInt[i] = (int)((ypoints[i] - (float)imagePosition[0]));
-    		System.out.println(xpointsInt[i] + " , " + ypointsInt[i]);
+    	String[] rectumDoseTextData = new String[tr.rectumDouble.length];
+    	double [][] rectumDoseDouble = new double[tr.rectumDouble.length][4];
+    	for (i = 0; i < tr.rectumDouble.length; i ++){
+    		rectumDoseTextData[i] = returnString(tr.rectumDouble[i]) + " " + getDicomValue(Dose2, DoseIP2, tr.rectumDouble[i]);
+    		rectumDoseDouble[i][0] = tr.rectumDouble[i][0];
+    		rectumDoseDouble[i][1] = tr.rectumDouble[i][1];
+    		rectumDoseDouble[i][2] = tr.rectumDouble[i][2];
+    		rectumDoseDouble[i][3] = getDicomValue(Dose2, DoseIP2, tr.rectumDouble[i]);
+    		
     	}
-    	//ImageProcessor DoseIP2 = Dose.getProcessor();
-    	
-    	Dose.setSlice(45);
-    	for (i = 0; i < xpoints.length; i ++){ 
-    			DoseIP2.setf(xpointsInt[i], ypointsInt[i], putValue[1]);
-    	}
+    	tr.makeFile(fileDirectory + "RectumDoseTest.txt", rectumDoseTextData);
+    	tr.makeFile(fileDirectory + "RectumRingDoseTest.txt", makeRingDose(tr, rectumDoseDouble));
+		
     	//double [] testte = tr.getSlices(tr.rectumDouble);
     	/*for(i = 0; i < testte.length; i ++){
     		System.out.println(testte[i]);
     	}*/
-    	PolygonRoi test2 = new PolygonRoi(xpointsInt , ypointsInt, xpointsInt.length, PolygonRoi.POLYLINE);
-    	Dose2.setRoi(test2);
-		Dose.updateAndDraw();
+    	//PolygonRoi test2 = new PolygonRoi(xpointsInt , ypointsInt, xpointsInt.length, PolygonRoi.POLYLINE);
+    	//Dose2.setRoi(test2);
+		Dose2.updateAndDraw();
 	}
 	
+	public String[] makeRingDose(TextReader tr, double [][] rectumDoseDouble){
+		String[] returnRingDoseTemp = new String[tr.countSlice(rectumDoseDouble)];
+		String[] returnRingDose = new String[tr.countSlice(rectumDoseDouble)];
+		int sliceNumber = tr.countSlice(rectumDoseDouble);
+		int i = 0;
+		int [] ringSize = new int[tr.countSlice(rectumDoseDouble)];
+		int ringSizeMax =0;
+		
+		for(i =0; i < returnRingDoseTemp.length; i++) returnRingDoseTemp[i]="";
+		int sliceCount = 0;
+		double zTemp = rectumDoseDouble[0][2];
+		for(i = 0; i < rectumDoseDouble.length; i ++) {
+			//System.out.print(rectumDoseDouble[i][3] + " ");
+			returnRingDoseTemp[sliceCount] += String.valueOf(rectumDoseDouble[i][3]) + " ";
+			ringSize[sliceCount] ++;
+			if (rectumDoseDouble[i][2] != zTemp){
+				//System.out.print(" " + sliceCount + "\n");
+				sliceCount++;
+			}
+			zTemp = rectumDoseDouble[i][2];
+		}
+		
+		ringSizeMax = searchMax(ringSize);
+		///空白を0で埋める
+		String[] zeroTemp = new String[sliceNumber];
+		for(i = 0; i < zeroTemp.length; i ++) {
+			zeroTemp[i] = "";
+		}
+		int j = 0;
+		for (i = 0; i < sliceNumber; i ++) {
+			System.out.println(ringSizeMax - ringSize[i]);
+			for(j = 0;j < (ringSizeMax - ringSize[i])/2; j ++) {
+				zeroTemp[i] += "0 ";
+			}
+		}
+		for(i =0; i < sliceNumber; i ++) {
+			if(ringSize[i] % 2 == 0) {
+				returnRingDose[i] = zeroTemp[i] + returnRingDoseTemp[i] + zeroTemp[i];
+			} else if(ringSize[i] % 2 == 1) {
+				returnRingDose[i] = "0 " + zeroTemp[i] + returnRingDoseTemp[i] + zeroTemp[i];
+			}
+		}
+		//System.out.print(returnRingDose[0]);
+		//printAllStrings(returnRingDose);
+		//System.out.println(sliceCount);
+		//printAllStrings(returnRingDose);
+		//System.out.println(returnRingDose[0]);
+		
+		return returnRingDose;
+	}
+	
+	int searchMax(int [] input) {
+		int i=0, returnInt = 0;
+		for(i = 0;i < input.length; i ++){
+			//System.out.println(input[i]);
+			if (input[i] > returnInt) returnInt = input[i];
+		}
+		return returnInt;
+	}
+	public String returnString(double [] inputDouble) {
+		if(inputDouble.length == 3) {
+			return String.valueOf(inputDouble[0]) + " " + String.valueOf(inputDouble[1]) + " " + String.valueOf(inputDouble[2]) ;
+		}
+		return "inputDouble is not 3 dimension";
+	}
+	
+	public static double[] getX(double [][] rectumDouble, double[][] zSlices){
+		int i = 0;
+		int init = (int)zSlices[0][1];
+		int end = (int)zSlices[0][2];
+		
+		int number = end - init;
+		double [] returnX = new double[number];
+		for(i = 0; i < number; i ++) {
+			returnX[i] = rectumDouble[init + i][0];
+			System.out.println(returnX[i]);
+		}
+		return returnX;
+	}
 	public static void putPoint (){
     	int i = 0;
     	float [] putValue = {8000.0f, 0.0f};
@@ -186,5 +270,23 @@ public class IJTestPlugin_ implements PlugIn {
 				System.out.println(inputString[i]);
 			//}
 		}
+	}
+	
+	public double getDicomValue(ImagePlus Dose2, ImageProcessor DoseIP2, double [] inputPosition){
+		double returnDouble;
+		int[] dicomPosition = new int[inputPosition.length];
+		int i = 0;
+		for(i = 0; i < inputPosition.length; i ++) {
+			dicomPosition[i] =(int) ( inputPosition[i] - imagePosition[i]);		//1 mm Voxelだからこれでもいいが	
+		}
+		Dose2.setSlice(dicomPosition[2]);
+		//小数点下1桁までにする。もっと良い方法はある
+		returnDouble = DoseIP2.getf(dicomPosition[0], dicomPosition[1]);
+		returnDouble *= 10;
+		returnDouble = (int)(returnDouble);
+		returnDouble /= 10;
+		returnDouble = (double)returnDouble; 
+		//DoseIP2.setf(dicomPosition[0], dicomPosition[1], 12000.0f);
+		return returnDouble;
 	}
 }

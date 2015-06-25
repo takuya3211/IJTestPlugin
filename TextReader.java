@@ -212,7 +212,7 @@ public class TextReader {
 		}
 		//countSlice(rectumDouble);
 		getSlices(rectumDouble);
-		printzSlices(getSlices(rectumDouble));
+		//printzSlices(getSlices(rectumDouble));
 		System.out.println("RectumFile finished");
 	}
 	
