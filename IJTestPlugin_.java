@@ -28,6 +28,10 @@ public class IJTestPlugin_ implements PlugIn {
 	static double doseScaling;
 	static double [] zSlices;
 	static double[][] rectumDose;
+	static int roiCount = 0;
+	RoiManager rm = new RoiManager();
+	PointRoi pr = new PointRoi(0,0);
+	
 	//-10.8 -183.7 -594.0
 	public void run(String arg) {
         String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
@@ -94,18 +98,15 @@ public class IJTestPlugin_ implements PlugIn {
     		rectumDoseDouble[i][3] = getDicomValue(Dose2, DoseIP2, tr.rectumDouble[i]);
     		
     	}
+
     	tr.makeFile(fileDirectory + "RectumDoseTest.txt", rectumDoseTextData);
     	tr.makeFile(fileDirectory + "RectumRingDoseTest.txt", makeRingDose(tr, rectumDoseDouble));
-		
-    	//double [] testte = tr.getSlices(tr.rectumDouble);
-    	/*for(i = 0; i < testte.length; i ++){
-    		System.out.println(testte[i]);
-    	}*/
-    	//PolygonRoi test2 = new PolygonRoi(xpointsInt , ypointsInt, xpointsInt.length, PolygonRoi.POLYLINE);
-    	//Dose2.setRoi(test2);
+    	
+	
 		Dose2.updateAndDraw();
 	}
-	
+
+		 
 	public String[] makeRingDose(TextReader tr, double [][] rectumDoseDouble){
 		String[] returnRingDoseTemp = new String[tr.countSlice(rectumDoseDouble)];
 		String[] returnRingDose = new String[tr.countSlice(rectumDoseDouble)];
@@ -127,6 +128,9 @@ public class IJTestPlugin_ implements PlugIn {
 			}
 			zTemp = rectumDoseDouble[i][2];
 		}
+		for( i = 0; i < returnRingDoseTemp.length; i ++) {
+			returnRingDoseTemp[i] = rotateString(returnRingDoseTemp[i]);
+		}
 		
 		ringSizeMax = searchMax(ringSize);
 		///‹ó”’‚ð0‚Å–„‚ß‚é
@@ -136,7 +140,7 @@ public class IJTestPlugin_ implements PlugIn {
 		}
 		int j = 0;
 		for (i = 0; i < sliceNumber; i ++) {
-			System.out.println(ringSizeMax - ringSize[i]);
+			//System.out.println(ringSizeMax - ringSize[i]);
 			for(j = 0;j < (ringSizeMax - ringSize[i])/2; j ++) {
 				zeroTemp[i] += "0 ";
 			}
@@ -155,6 +159,20 @@ public class IJTestPlugin_ implements PlugIn {
 		//System.out.println(returnRingDose[0]);
 		
 		return returnRingDose;
+	}
+	
+	String rotateString(String inputString) {
+		int i = 0;
+		String [] tempSplit = inputString.split(" ");
+		//System.out.println(tempSplit.length);
+		String rotationString ="";
+		for(i = tempSplit.length/2; i < tempSplit.length; i++){
+			rotationString += tempSplit[i] + " ";
+		}
+		for(i = 0; i < tempSplit.length/2; i++){
+			rotationString += tempSplit[i] + " ";
+		}
+		return rotationString;
 	}
 	
 	int searchMax(int [] input) {
@@ -286,7 +304,11 @@ public class IJTestPlugin_ implements PlugIn {
 		returnDouble = (int)(returnDouble);
 		returnDouble /= 10;
 		returnDouble = (double)returnDouble; 
+		
+		pr.setLocation(dicomPosition[0], dicomPosition[1]);
+		rm.addRoi(pr);
 		//DoseIP2.setf(dicomPosition[0], dicomPosition[1], 12000.0f);
+
 		return returnDouble;
 	}
 }
