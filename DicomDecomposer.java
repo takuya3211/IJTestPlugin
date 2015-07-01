@@ -65,9 +65,9 @@ class DicomDecomposer{
 		roiNumberList = new ArrayList<String>();
 	}
 	
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		DicomDecomposer dd = new DicomDecomposer();
-	}
+	}*/
 	
 	public DicomDecomposer(){
 		makeContourFile();

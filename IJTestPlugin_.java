@@ -34,9 +34,17 @@ public class IJTestPlugin_ implements PlugIn {
 	
 	//-10.8 -183.7 -594.0
 	public void run(String arg) {
-        String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
-        String fileNameDoseDCM = "19831222_test1_Dose.DCM";
-        String fileNameContourDCM = "19831222_test1_Dose.dcm";
+		
+		//GUIでのファイルオープン
+		OpenDialog od = new OpenDialog("filename");
+		System.out.println(od.getPath());
+		//System.out.println(od.getLastDirectory());
+		String fileDirectory = od.getLastDirectory();
+		String fileNameDoseDCM = od.getLastName();
+		System.out.println(fileNameDoseDCM);
+        //String fileDirectory = "/Users/takuya/Dropbox/program/workspace/DicomDecomposer/src/MonacoPlan2/";
+        //String fileNameDoseDCM = "19831222_test1_Dose.DCM";
+       // String fileNameContourDCM = "19831222_test1_Dose.dcm";
         String fileNameContour = "Contour.txt";
         String fileNameDose = "Dose.txt";
         //String fileNameDose = "test.png";
@@ -76,7 +84,7 @@ public class IJTestPlugin_ implements PlugIn {
 		
     	//Dose.show();
     	//1mmボクセルにリスケール
-    	ScalerKai sk = new ScalerKai();
+    	ScalerKai_ sk = new ScalerKai_();
     	sk.setXYZScaling(pixelSpacing[0], pixelSpacing[1], pixelSpacing[2],(int)(Dose.getImageStackSize()*pixelSpacing[2] ));
     	//sk.setXYZScaling(3,3,3,(int)(Dose.getImageStackSize()*pixelSpacing[2] ));
     	sk.setIMP(Dose);
@@ -311,4 +319,39 @@ public class IJTestPlugin_ implements PlugIn {
 
 		return returnDouble;
 	}
+	
+	
+	
+	
+	/////GUIのテスト
+	 static int brightLimit = 50;
+
+	    // static でなければ実行毎に初期化されます。
+	 private boolean ifChange = false;
+	 
+	 private boolean getParam()
+    {
+        GenericDialog gd = new GenericDialog("Enter Parameters.",
+                                             IJ.getInstance());
+        gd.addNumericField("", brightLimit, 0);
+        gd.addCheckbox("change image", ifChange);
+	// 同じようにして他のParameterも取得できます。        
+
+	// dialog表示
+        gd.showDialog();
+        
+	// dialogでキャンセルボタンが押された時
+	// （ちょっと汚い処理の仕方です。Javaらしくするなら例外を使うのかな。）
+        if (gd.wasCanceled()) 
+	    {
+                return true;
+                }
+        
+	// ここで取得結果を代入。詳しくはAPI docを参照して下さい。
+        brightLimit = (int) gd.getNextNumber();
+	ifChange = (boolean) gd.getNextBoolean();
+	// 他のParameterもここで取得可能です。
+
+	return false;
+    }
 }

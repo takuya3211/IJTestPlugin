@@ -11,7 +11,7 @@ import java.util.*;
 
 
 /** This plugin implements the Image/Scale command. */
-public class ScalerKai implements PlugIn, TextListener, FocusListener {
+public class ScalerKai_ implements PlugIn, TextListener, FocusListener {
 	private ImagePlus imp;
 	private static String xstr = "0.5";
 	private static String ystr = "0.5";
@@ -117,7 +117,7 @@ public class ScalerKai implements PlugIn, TextListener, FocusListener {
 			imp2.setOpenAsHyperStack(true);
 		if (newDepth>0 && newDepth!=oldDepth) {
 			Resizer resizer = new Resizer();
-			resizer.setAverageWhenDownsizing(averageWhenDownsizing);
+			//resizer.setAverageWhenDownsizing(averageWhenDownsizing);
 			//newDepth = 162;
 			imp2 = resizer.zScale(imp2, newDepth, interpolationMethod);
 		}
